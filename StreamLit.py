@@ -1,6 +1,7 @@
 import streamlit as st
 import requests
-import cx_Oracle
+import oracledb
+import pandas as pd
 
 # -------------------- CONFIGURATION --------------------
 # Groq API Key
@@ -8,22 +9,35 @@ GROQ_API_KEY = "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"
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 GROQ_MODEL = "llama3-8b-8192"
 
-# Oracle sample connection (replace later with real)
+# Oracle config (replace with actual if needed)
 ORACLE_CONFIG = {
-    "host": "localhost",
-    "port": "1521",
-    "service_name": "orclpdb1",
-    "username": "system",
-    "password": "oracle"
+    "host": "dataanalytics.apeasternpower.com",
+    "port": 1521,
+    "service_name": "oracle",
+    "user": "EPDAU",
+    "password": "EP#Analytics"
 }
 
-# Table schema shown to user and passed to GPT
+# Optional: Enable if running locally and using Oracle Instant Client
+# oracledb.init_oracle_client(lib_dir=r"C:\Program Files\Oracle\instant client\instantclient_23_7")
+
+# -------------------- Updated Oracle Table Schema --------------------
 TABLE_SCHEMA = """
-Table: Sales
-- Product_id VARCHAR(20)
-- Product_name VARCHAR(50)
-- Sale_amount INT
-- Profit_amount INT
+Table: EPDAU.DTR_COORDINATES
+- CIRCLE_NAME VARCHAR2(90)
+- DIVISION_NAME VARCHAR2(90)
+- SUB_DIVISION_NAME VARCHAR2(90)
+- SECTION_NAME VARCHAR2(90)
+- SUB_STATION_NAME VARCHAR2(40)
+- FEEDER_NAME VARCHAR2(50)
+- FDR_TYPE VARCHAR2(90)
+- FDR_CLASS VARCHAR2(90)
+- FEEDER_CODE VARCHAR2(300)
+- DTR_STRUC_CODE VARCHAR2(50) NOT NULL
+- DTR_LOCATION VARCHAR2(100)
+- DTR_CAPACITY VARCHAR2(10)
+- LATITUDE VARCHAR2(60)
+- LONGITUDE VARCHAR2(60)
 """
 
 # -------------------- FUNCTION: Call Groq AI --------------------
@@ -55,24 +69,19 @@ def generate_sql_from_prompt(user_prompt):
 # -------------------- FUNCTION: Execute Oracle Query --------------------
 def execute_oracle_query(query):
     try:
-        dsn = cx_Oracle.makedsn(
+        dsn = oracledb.makedsn(
             ORACLE_CONFIG["host"],
             ORACLE_CONFIG["port"],
             service_name=ORACLE_CONFIG["service_name"]
         )
-        connection = cx_Oracle.connect(
-            ORACLE_CONFIG["username"],
-            ORACLE_CONFIG["password"],
-            dsn
+        conn = oracledb.connect(
+            user=ORACLE_CONFIG["user"],
+            password=ORACLE_CONFIG["password"],
+            dsn=dsn
         )
-        cursor = connection.cursor()
-        cursor.execute(query)
-        columns = [col[0] for col in cursor.description]
-        rows = cursor.fetchall()
-        data = [dict(zip(columns, row)) for row in rows]
-        cursor.close()
-        connection.close()
-        return data
+        df = pd.read_sql(query, conn)
+        conn.close()
+        return df
     except Exception as e:
         return f"❌ Oracle Error: {str(e)}"
 
@@ -82,11 +91,11 @@ st.title("🧠 Natural Language to Oracle SQL (Groq AI)")
 
 # Show schema in read-only textbox
 st.subheader("📊 Table Structure")
-st.text_area("Oracle Table Schema", value=TABLE_SCHEMA.strip(), height=120, disabled=True)
+st.text_area("Oracle Table Schema", value=TABLE_SCHEMA.strip(), height=260, disabled=True)
 
 # Prompt input
 st.subheader("💬 Enter Your Prompt")
-user_prompt = st.text_area("Ask your query in plain English:", placeholder="e.g. List products with Sale_amount > 1000")
+user_prompt = st.text_area("Ask your query in plain English:", placeholder="e.g. List DTRs with capacity above 100")
 
 # Session state for SQL and results
 if "sql_output" not in st.session_state:
@@ -111,17 +120,17 @@ if st.session_state.sql_output:
 
     # Submit button to execute query
     if st.button("🚀 Submit & Run Query"):
-        with st.spinner("Executing on Oracle..."):
+        with st.spinner("Running SQL on Oracle..."):
             result = execute_oracle_query(st.session_state.sql_output)
             st.session_state.query_result = result
 
 # Display query result
-if st.session_state.query_result:
+if st.session_state.query_result is not None:
     st.subheader("📄 Query Result")
-    result = st.session_state.query_result
-    if isinstance(result, str):
-        st.error(result)
-    elif result:
-        st.dataframe(result)
+    if isinstance(st.session_state.query_result, str):
+        st.error(st.session_state.query_result)
+    elif not st.session_state.query_result.empty:
+        st.dataframe(st.session_state.query_result)
+        st.download_button("📥 Download as CSV", st.session_state.query_result.to_csv(index=False), file_name="oracle_query_result.csv")
     else:
         st.info("No records found.")
