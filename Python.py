@@ -30,7 +30,7 @@ def generate_sql_from_prompt(user_prompt):
         "Content-Type": "application/json"
     }
     payload = {
-        "model": "mixtral-8x7b-32768",
+        "model": "llama3-8b-8192",
         "messages": [
             {"role": "system", "content": TABLE_SCHEMA},
             {"role": "user", "content": user_prompt}
