@@ -1,11 +1,11 @@
-import streamlit as st
+﻿import streamlit as st
 import requests
 import oracledb
 import pandas as pd
 
 # -------------------- CONFIGURATION --------------------
 # Groq API Key
-GROQ_API_KEY = "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"
+GROQ_API_KEY = "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"
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 GROQ_MODEL = "llama3-8b-8192"
 
@@ -19,7 +19,7 @@ ORACLE_CONFIG = {
 }
 
 # Optional: Enable if running locally and using Oracle Instant Client
-# oracledb.init_oracle_client(lib_dir=r"C:\Program Files\Oracle\instant client\instantclient_23_7")
+oracledb.init_oracle_client(lib_dir=r"C:\Program Files\Oracle\instant client\instantclient_23_7")
 
 # -------------------- Updated Oracle Table Schema --------------------
 TABLE_SCHEMA = """
@@ -87,7 +87,7 @@ def execute_oracle_query(query):
 
 # -------------------- STREAMLIT UI --------------------
 st.set_page_config(page_title="Oracle SQL Generator", layout="centered")
-st.title("🧠 Natural Language to Oracle SQL (Groq AI)")
+st.title("🧠 Natural Language to Oracle SQL")
 
 # Show schema in read-only textbox
 st.subheader("📊 Table Structure")
