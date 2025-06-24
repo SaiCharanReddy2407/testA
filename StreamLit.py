@@ -3,13 +3,13 @@ import requests
 import oracledb
 import pandas as pd
 
-# -------------------- CONFIGURATION --------------------
+# -------------------- CONFIGURATION -------------------- #
 # Groq API Key
 GROQ_API_KEY = "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"
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 GROQ_MODEL = "llama3-8b-8192"
 
-# Oracle config (replace with actual if needed)
+# Oracle config
 ORACLE_CONFIG = {
     "host": "dataanalytics.apeasternpower.com",
     "port": 1521,
@@ -18,10 +18,10 @@ ORACLE_CONFIG = {
     "password": "EP#Analytics"
 }
 
-# Optional: Enable if running locally and using Oracle Instant Client
+# Optional: Enable if using Oracle Instant Client
 oracledb.init_oracle_client(lib_dir=r"C:\Program Files\Oracle\instant client\instantclient_23_7")
 
-# -------------------- Updated Oracle Table Schema --------------------
+# Table schema (used internally by LLM, not shown in UI)
 TABLE_SCHEMA = """
 Table: EPDAU.DTR_COORDINATES
 - CIRCLE_NAME VARCHAR2(90)
@@ -40,14 +40,20 @@ Table: EPDAU.DTR_COORDINATES
 - LONGITUDE VARCHAR2(60)
 """
 
-# -------------------- FUNCTION: Call Groq AI --------------------
+# -------------------- FUNCTION: Call Groq AI -------------------- #
 def generate_sql_from_prompt(user_prompt):
     try:
         payload = {
             "model": GROQ_MODEL,
             "messages": [
-                {"role": "system", "content": f"You are a SQL assistant. Use only this table:\n{TABLE_SCHEMA}\nOnly respond with the Oracle SQL query, no explanation."},
-                {"role": "user", "content": user_prompt}
+                {
+                    "role": "system",
+                    "content": f"You are a SQL assistant. Use only this table:\n{TABLE_SCHEMA}\nOnly respond with the Oracle SQL query, no explanation."
+                },
+                {
+                    "role": "user",
+                    "content": f"{user_prompt.strip()} Don't use ';' at end of query."
+                }
             ],
             "temperature": 0.2
         }
@@ -66,7 +72,7 @@ def generate_sql_from_prompt(user_prompt):
     except Exception as e:
         return f"❌ Error: {str(e)}"
 
-# -------------------- FUNCTION: Execute Oracle Query --------------------
+# -------------------- FUNCTION: Execute Oracle Query -------------------- #
 def execute_oracle_query(query):
     try:
         dsn = oracledb.makedsn(
@@ -85,13 +91,9 @@ def execute_oracle_query(query):
     except Exception as e:
         return f"❌ Oracle Error: {str(e)}"
 
-# -------------------- STREAMLIT UI --------------------
+# -------------------- STREAMLIT UI -------------------- #
 st.set_page_config(page_title="Oracle SQL Generator", layout="centered")
 st.title("🧠 Natural Language to Oracle SQL")
-
-# Show schema in read-only textbox
-st.subheader("📊 Table Structure")
-st.text_area("Oracle Table Schema", value=TABLE_SCHEMA.strip(), height=260, disabled=True)
 
 # Prompt input
 st.subheader("💬 Enter Your Prompt")
