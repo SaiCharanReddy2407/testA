@@ -4,12 +4,10 @@ import oracledb
 import pandas as pd
 
 # -------------------- CONFIGURATION -------------------- #
-# Groq API Key
 GROQ_API_KEY = "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"
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 GROQ_MODEL = "llama3-8b-8192"
 
-# Oracle config
 ORACLE_CONFIG = {
     "host": "dataanalytics.apeasternpower.com",
     "port": 1521,
@@ -18,10 +16,9 @@ ORACLE_CONFIG = {
     "password": "EP#Analytics"
 }
 
-# Optional: Enable if using Oracle Instant Client
+# Optional Oracle Instant Client config
 oracledb.init_oracle_client(lib_dir=r"C:\Program Files\Oracle\instant client\instantclient_23_7")
 
-# Table schema (used internally by LLM, not shown in UI)
 TABLE_SCHEMA = """
 Table: EPDAU.DTR_COORDINATES
 - CIRCLE_NAME VARCHAR2(90)
@@ -95,13 +92,11 @@ def execute_oracle_query(query):
 st.set_page_config(page_title="Oracle SQL Generator", layout="centered")
 st.title("🧠 Natural Language to Oracle SQL")
 
-# Prompt input
 st.subheader("💬 Enter Your Prompt")
 user_prompt = st.text_area("Ask your query in plain English:", placeholder="e.g. List DTRs with capacity above 100")
 
-# Session state for SQL and results
 if "sql_output" not in st.session_state:
-    st.session_state.sql_output = None
+    st.session_state.sql_output = ""
 if "query_result" not in st.session_state:
     st.session_state.query_result = None
 
@@ -115,18 +110,18 @@ if st.button("🔄 Generate SQL"):
             st.session_state.sql_output = sql
             st.session_state.query_result = None
 
-# Show generated SQL
+# Editable SQL Text Area
 if st.session_state.sql_output:
-    st.subheader("📝 Generated Oracle SQL Query")
-    st.code(st.session_state.sql_output, language="sql")
+    st.subheader("📝 Generated Oracle SQL Query (Editable)")
+    st.session_state.sql_output = st.text_area("Edit your SQL query if needed:", value=st.session_state.sql_output, height=150)
 
-    # Submit button to execute query
+    # Submit & Run Query
     if st.button("🚀 Submit & Run Query"):
         with st.spinner("Running SQL on Oracle..."):
             result = execute_oracle_query(st.session_state.sql_output)
             st.session_state.query_result = result
 
-# Display query result
+# Show Results
 if st.session_state.query_result is not None:
     st.subheader("📄 Query Result")
     if isinstance(st.session_state.query_result, str):
