@@ -18,27 +18,27 @@ POSTGRES_CONFIG = {
     "password": "LgXDJqdbIFlVvmeTURueCqKXaapCOotV"
 }
 
-# Table Schema (used only for LLM prompt context)
+# Table Schema with Quoted Columns
 TABLE_SCHEMA = """
 Table: public.train
-- Row ID: int
-- Order ID: varchar(50)
-- Order Date: varchar(50)
-- Ship Date: varchar(50)
-- Ship Mode: varchar(50)
-- Customer ID: varchar(50)
-- Customer Name: varchar(50)
-- Segment: varchar(50)
-- Country: varchar(50)
-- City: varchar(50)
-- State: varchar(50)
-- Postal Code: int
-- Region: varchar(50)
-- Product ID: varchar(50)
-- Category: varchar(50)
-- Sub-Category: varchar(50)
-- Product Name: varchar(128)
-- Sales: float
+- "Row ID" int
+- "Order ID" varchar(50)
+- "Order Date" varchar(50)
+- "Ship Date" varchar(50)
+- "Ship Mode" varchar(50)
+- "Customer ID" varchar(50)
+- "Customer Name" varchar(50)
+- "Segment" varchar(50)
+- "Country" varchar(50)
+- "City" varchar(50)
+- "State" varchar(50)
+- "Postal Code" int
+- "Region" varchar(50)
+- "Product ID" varchar(50)
+- "Category" varchar(50)
+- "Sub-Category" varchar(50)
+- "Product Name" varchar(128)
+- "Sales" float
 """
 
 # -------------------- FUNCTION: Call Groq API -------------------- #
@@ -46,7 +46,7 @@ def generate_sql_from_prompt(user_prompt):
     try:
         prompt = (
             f"{user_prompt.strip()} "
-            f"Don't use ';' at end of query. SQL language in PostgreSQL."
+            f"Don't use ';' at end of query. SQL language in PostgreSQL.
         )
         payload = {
             "model": GROQ_MODEL,
@@ -102,7 +102,7 @@ st.markdown("**This app uses a `train` table containing order, customer, product
 
 # Prompt input
 st.subheader("💬 Enter Your Prompt")
-user_prompt = st.text_area("Ask your query in plain English:", placeholder="e.g. Show total sales by region")
+user_prompt = st.text_area("Ask your query in plain English:", placeholder='e.g. Show top 5 customers by total "Sales"')
 
 # Session state
 if "sql_output" not in st.session_state:
@@ -138,6 +138,4 @@ if st.session_state.query_result is not None:
         st.error(st.session_state.query_result)
     elif not st.session_state.query_result.empty:
         st.dataframe(st.session_state.query_result)
-        st.download_button("📥 Download as CSV", st.session_state.query_result.to_csv(index=False), file_name="query_result.csv")
-    else:
-        st.info("No records found.")
+        st.download_button("📥 Download as CSV", st.session_state.query_resul_
