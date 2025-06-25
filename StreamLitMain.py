@@ -5,7 +5,7 @@ import pandas as pd
 
 # -------------------- CONFIGURATION -------------------- #
 # Groq API Config
-GROQ_API_KEY = "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"
+GROQ_API_KEY = "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"
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 GROQ_MODEL = "llama3-8b-8192"
 
