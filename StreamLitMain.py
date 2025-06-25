@@ -138,4 +138,6 @@ if st.session_state.query_result is not None:
         st.error(st.session_state.query_result)
     elif not st.session_state.query_result.empty:
         st.dataframe(st.session_state.query_result)
-        st.download_button("📥 Download as CSV", st.session_state.query_resul_
+        st.download_button("📥 Download as CSV", st.session_state.query_result.to_csv(index=False), file_name="query_result.csv")
+    else:
+        st.info("No records found.")
