@@ -95,7 +95,7 @@ def execute_postgres_query(query):
 
 # -------------------- STREAMLIT UI -------------------- #
 st.set_page_config(page_title="PostgreSQL SQL Generator", layout="centered")
-st.title("🧠 Natural Language to SQL (Railway PostgreSQL)")
+st.title("🧠 NL Prompt to SQL Query Result")
 
 # Table explanation under title
 st.markdown("**This app uses a `train` table containing order, customer, product, and sales data.** Use plain English to query it.")
