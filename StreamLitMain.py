@@ -18,7 +18,7 @@ POSTGRES_CONFIG = {
     "password": "LgXDJqdbIFlVvmeTURueCqKXaapCOotV"
 }
 
-# Updated Table Schema (for LLM prompt)
+# Table Schema (used only for LLM prompt context)
 TABLE_SCHEMA = """
 Table: public.train
 - Row ID: int
@@ -44,16 +44,20 @@ Table: public.train
 # -------------------- FUNCTION: Call Groq API -------------------- #
 def generate_sql_from_prompt(user_prompt):
     try:
+        prompt = (
+            f"{user_prompt.strip()} "
+            f"Don't use ';' at end of query. SQL language in MySQL."
+        )
         payload = {
             "model": GROQ_MODEL,
             "messages": [
                 {
                     "role": "system",
-                    "content": f"You are a SQL assistant. Use only this table:\n{TABLE_SCHEMA}\nOnly respond with the PostgreSQL SQL query, no explanation."
+                    "content": f"You are a SQL assistant. Use only this table:\n{TABLE_SCHEMA}\nOnly respond with the SQL query, no explanation."
                 },
                 {
                     "role": "user",
-                    "content": f"{user_prompt.strip()} Don't use ';' at end of query."
+                    "content": prompt
                 }
             ],
             "temperature": 0.2
@@ -93,13 +97,14 @@ def execute_postgres_query(query):
 st.set_page_config(page_title="PostgreSQL SQL Generator", layout="centered")
 st.title("🧠 Natural Language to SQL (Railway PostgreSQL)")
 
-# Hide schema section (optional)
-# st.subheader("📊 Table Structure")
-# st.text_area("PostgreSQL Table Schema", value=TABLE_SCHEMA.strip(), height=260, disabled=True)
+# Table explanation under title
+st.markdown("**This app uses a `train` table containing order, customer, product, and sales data.** Use plain English to query it.")
 
+# Prompt input
 st.subheader("💬 Enter Your Prompt")
-user_prompt = st.text_area("Ask your query in plain English:", placeholder="e.g. List top 10 products by sales")
+user_prompt = st.text_area("Ask your query in plain English:", placeholder="e.g. Show total sales by region")
 
+# Session state
 if "sql_output" not in st.session_state:
     st.session_state.sql_output = None
 if "query_result" not in st.session_state:
@@ -115,7 +120,7 @@ if st.button("🔄 Generate SQL"):
             st.session_state.sql_output = sql
             st.session_state.query_result = None
 
-# Show editable SQL
+# Editable SQL text area
 if st.session_state.sql_output:
     st.subheader("📝 Generated SQL (Editable)")
     st.session_state.sql_output = st.text_area("Edit your SQL if needed:", value=st.session_state.sql_output, height=150)
