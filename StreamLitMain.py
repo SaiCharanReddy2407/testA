@@ -46,7 +46,7 @@ def generate_sql_from_prompt(user_prompt):
     try:
         prompt = (
             f"{user_prompt.strip()} "
-            f"Don't use ';' at end of query. SQL language in PostgreSQL.
+            f"Don't use ';' at end of query. SQL language in PostgreSQL."
         )
         payload = {
             "model": GROQ_MODEL,
