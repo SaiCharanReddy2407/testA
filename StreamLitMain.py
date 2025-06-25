@@ -98,7 +98,7 @@ st.set_page_config(page_title="PostgreSQL SQL Generator", layout="centered")
 st.title("🧠 NL Prompt to SQL Query Result")
 
 # Table explanation under title
-st.markdown("**This app uses a `train` table containing order, customer, product, and sales data.** Use plain English to query it.")
+st.markdown("**This app uses a `Sales` table containing order, customer, product, and sales data.** Use plain English to query it.")
 
 # Prompt input
 st.subheader("💬 Enter Your Prompt")
