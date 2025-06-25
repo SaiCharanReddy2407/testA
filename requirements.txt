@@ -1,4 +1,5 @@
 streamlit
 requests
+psycopg2
 oracledb
 pandas
